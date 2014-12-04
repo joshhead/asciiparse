@@ -114,6 +114,8 @@
 (defn -main
   ([]
    (println "Usage: asciiparse infile [outfile]"))
+  ([one two & more]
+   (-main))
   ([infile]
    (with-open [r (io/reader infile)]
      (let [entries (transform-lines (line-seq r))]
