@@ -1,4 +1,5 @@
 (ns asciiparse.core
+  (:require [clojure.java.io :as io])
   (:gen-class))
 
 (def coll-to-n
@@ -47,13 +48,78 @@
   (reduce reduce-entry [] (three-of-four-seq lines)))
 
 (defn legible-entry?
+  "True if all items in the sequence are numbers, false otherwise."
   [entry]
   (every? number? entry))
 
 (defn valid-entry?
+  "Validate an entry against checksum calculation. Sequences shorter
+  or longer than 9 characters are always considered invalid.  Return
+  true if entry passes checksum, false otherwise."
   [entry]
   (and (= (count entry) 9)
        (-> (map * [9 8 7 6 5 4 3 2 1] entry)
            (#(reduce + %))
            (mod 11)
            (= 0))))
+
+(defn entry->str
+  [entry]
+  (apply str (replace {nil \?} entry)))
+
+(defn entry->status
+  [entry]
+  (cond
+   (not (legible-entry? entry)) ::illegible
+   (not (valid-entry? entry)) ::invalid
+   :else ::valid))
+
+(defn status->str
+  "Return a formatted string. Valid or unknown status are empty
+  string, others have a leading space so all can be appended to entry
+  number in formatted output."
+  [status]
+  (get {::illegible " ILL"
+        ::invalid " ERR"
+        ::valid ""} status ""))
+
+(defn formatted-entries
+  "Return sequence of strings formatted for printing.
+  e.g. [[4 5 7 5 0 8 0 0 0]
+        [6 6 4 3 7 1 4 9 5]
+        [8 6 1 1 0 nil nil 3 6]]
+  becomes (\"457508000\"
+           \"664371495 ERR\"
+           \"86110??36 ILL\")"
+  [entries]
+  (->> entries
+       (map (juxt entry->str (comp status->str entry->status)))
+       (map #(apply str %))))
+
+(defn write-formatted
+  "Write formatted entries to given output stream."
+  [out entries]
+  (dorun (map #(.write out (str % \newline)) (formatted-entries entries))))
+
+(defn print-formatted
+  "Print formatted entries to standard out."
+  [entries]
+  (write-formatted *out* entries))
+
+(defn formatted-string
+  "Return a string containing formatted output for all entries."
+  [entries]
+  (with-out-str (print-formatted entries)))
+
+(defn -main
+  ([]
+   (println "Usage: asciiparse infile [outfile]"))
+  ([infile]
+   (with-open [r (io/reader infile)]
+     (let [entries (transform-lines (line-seq r))]
+       (print-formatted entries))))
+  ([infile outfile]
+   (with-open [r (io/reader infile)
+               w (io/writer outfile)]
+     (let [entries (transform-lines (line-seq r))]
+       (write-formatted w entries)))))

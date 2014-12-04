@@ -23,7 +23,11 @@
   (testing "Read well formed input with illegible numbers."
     (let [parsed (with-open [r (io/reader "testdata/illegible.txt")]
                    (doall (transform-lines (line-seq r))))]
-      (is (= parsed [[1 2 3 4 nil 6 7 8 nil]])))))
+      (is (= parsed [[1 2 3 4 nil 6 7 8 nil]
+                     [1 1 1 1 1 1 1 1 1]
+                     [0 0 0 0 0 0 0 5 1]
+                     [4 9 0 0 6 7 7 1 nil]
+                     [1 2 3 4 nil 6 7 8 nil]])))))
 
 (deftest trailing-space-in-file
   (testing "Read mostly good file with trailing whitespace and newline"
@@ -42,4 +46,11 @@
     (is (not (valid-entry? [8 8 8 8 8 8 8 8 8])))
     (is (not (valid-entry? [4 9 0 0 6 7 7 1 5])))
     (is (not (valid-entry? [0 1 2 3 4 5 6 7 8])))))
+
+(deftest format-output
+  (testing "Input with valid, illegible and invalid entries formats correctly."
+    (let [parsed (with-open [r (io/reader "testdata/illegible.txt")]
+                   (doall (transform-lines (line-seq r))))]
+      (is (= (formatted-string parsed)
+             "1234?678? ILL\n111111111 ERR\n000000051\n49006771? ILL\n1234?678? ILL\n")))))
 
