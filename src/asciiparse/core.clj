@@ -45,3 +45,15 @@
   converted numbers. Unrecognized numbers will be nil."
   [lines]
   (reduce reduce-entry [] (three-of-four-seq lines)))
+
+(defn legible-entry?
+  [entry]
+  (every? number? entry))
+
+(defn valid-entry?
+  [entry]
+  (and (= (count entry) 9)
+       (-> (map * [9 8 7 6 5 4 3 2 1] entry)
+           (#(reduce + %))
+           (mod 11)
+           (= 0))))
