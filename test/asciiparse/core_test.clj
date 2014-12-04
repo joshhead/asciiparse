@@ -25,6 +25,15 @@
                    (doall (transform-lines (line-seq r))))]
       (is (= parsed [[1 2 3 4 nil 6 7 8 nil]])))))
 
+(deftest trailing-space-in-file
+  (testing "Read mostly good file with trailing whitespace and newline"
+    (let [parsed (with-open [r (io/reader "testdata/extraspace.txt")]
+                   (doall (transform-lines (line-seq r))))]
+      (is (= parsed [[1 2 3 4 5 6 7 8 9]
+                     [0 0 0 0 0 0 0 0 0]
+                     [1 1 1 1 1 1 1 1 1]
+                     [2 2 2 2 2 2 2 2 2]])))))
+
 (deftest checksums
   (testing "Checksum function works on example inputs."
     (is (valid-entry? [7 1 1 1 1 1 1 1 1]))
