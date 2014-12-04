@@ -1,6 +1,4 @@
 (ns asciiparse.core
-  (:require [clojure.string :as string])
-  (:require [clojure.java.io :as io])
   (:gen-class))
 
 (def coll-to-n
@@ -44,6 +42,6 @@
 
 (defn transform-lines
   "Given a sequence of input ascii-art lines, return a sequence of
-  converted numbers"
+  converted numbers. Unrecognized numbers will be nil."
   [lines]
   (reduce reduce-entry [] (three-of-four-seq lines)))
